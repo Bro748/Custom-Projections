@@ -245,6 +245,13 @@ namespace CustomProjections
 
 			public static string roomName;
 			}
-		
+		public static void IggyDebug(string print)
+        {
+			//for debug purposes, not currently used
+			if (!File.Exists(Custom.RootFolderDirectory()+"IggyDebug.txt"))
+			{ File.Create(Custom.RootFolderDirectory() + "IggyDebug.txt"); }
+			File.AppendAllText(Custom.RootFolderDirectory() + "IggyDebug.txt", print+Environment.NewLine);
+			
+        }
 	}
 }
