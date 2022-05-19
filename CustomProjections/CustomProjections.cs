@@ -9,9 +9,10 @@ using MonoMod.Cil;
 using RWCustom;
 using UnityEngine;
 
+
 namespace CustomProjections
 {
-	[BepInPlugin("bro.customprojections", "CustomProjections", "0.1.0")]    // (GUID, mod name, mod version)
+	[BepInPlugin("bro.customprojections", "CustomProjections", "1.0.5")]    // (GUID, mod name, mod version)
 	public class CustomProjections : BaseUnityPlugin
 	{
 		public void OnEnable()
@@ -20,8 +21,44 @@ namespace CustomProjections
 
 
 			On.RainWorld.Start += RainWorld_Start;
+
+			
+			On.OverseerHolograms.OverseerHologram.ForcedDirectionPointer.ctor += PointerHook;
+			
 		}
 
+
+
+
+		
+		public void PointerHook(On.OverseerHolograms.OverseerHologram.ForcedDirectionPointer.orig_ctor orig,
+			OverseerHolograms.OverseerHologram.ForcedDirectionPointer Self,
+			Overseer overseer, OverseerHolograms.OverseerHologram.Message message, Creature communicateWith, float importance)
+			
+        {
+			//this adds a new sprite when ReliableIggyDirection is set to the new enum
+			//unfortunately, it *adds* a new sprite, rather than replacing it (which is bad)
+
+
+			//but first, grab all the stuff that would be in : base
+			orig(Self, overseer, message, communicateWith, importance);
+
+			//I don't know if these are totally necessary, but hey, safety first
+			Self.direction = overseer.AI.communication.forcedDirectionToGive;
+			string elementName = "GuidanceSlugcat";
+			
+				
+			//If it matches the new enum, load the new sprite
+			if(Self.direction.data.symbol == EnumExt_CustomProjections.Grapple)
+            {
+				elementName = "Kill_Tubeworm";
+				Self.symbol = new OverseerHolograms.OverseerHologram.Symbol(Self, Self.totalSprites, elementName);
+				(Self as OverseerHolograms.OverseerHologram)?.AddPart(Self.symbol);
+			}
+					
+			
+		}
+		
 		private void RainWorld_Start(On.RainWorld.orig_Start orig, RainWorld self)
 		{
 			orig(self);
@@ -32,6 +69,11 @@ namespace CustomProjections
 			IL.OverseerHolograms.OverseerImage.HoloImage.DrawSprites += HoloImage_PatchPROJ;
 
 		}
+
+	
+		
+
+
 
 		private void HoloImage_PatchPROJ(ILContext il)
 		{
@@ -151,6 +193,9 @@ namespace CustomProjections
 			public static OverseerHolograms.OverseerImage.ImageID Misc_2;
 			public static OverseerHolograms.OverseerImage.ImageID Misc_3;
 			public static OverseerHolograms.OverseerImage.ImageID Misc_4;
+
+			//adds the grapple to the iggy direction placed object
+			public static ReliableIggyDirection.ReliableIggyDirectionData.Symbol Grapple;
 		}
 
 
@@ -253,5 +298,8 @@ namespace CustomProjections
 			File.AppendAllText(Custom.RootFolderDirectory() + "IggyDebug.txt", print+Environment.NewLine);
 			
         }
+
+		
+
 	}
 }
