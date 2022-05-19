@@ -12,17 +12,24 @@ using UnityEngine;
 
 namespace CustomProjections
 {
-	[BepInPlugin("bro.customprojections", "CustomProjections", "1.0.5")]    // (GUID, mod name, mod version)
+	[BepInPlugin("bro.customprojections", "CustomProjections", "1.1.0")]    // (GUID, mod name, mod version)
 	public class CustomProjections : BaseUnityPlugin
 	{
+
+
+		//1.0.0 has customizable image projections
+		//2.0.0 will have proper customizable sprite projections
+		//rather than 'hardcoded' new sprite projections
+		//current is 1.1.0 because I have the code to add a new sprite projection, sort of
+
 		public void OnEnable()
 		{
 			/* This is called when the mod is loaded. */
 
-
+			//for IL hooks, used by image proj stuffs
 			On.RainWorld.Start += RainWorld_Start;
 
-			
+			//for the sprite proj stuffs
 			On.OverseerHolograms.OverseerHologram.ForcedDirectionPointer.ctor += PointerHook;
 			
 		}
@@ -37,7 +44,7 @@ namespace CustomProjections
 			
         {
 			//this adds a new sprite when ReliableIggyDirection is set to the new enum
-			//unfortunately, it *adds* a new sprite, rather than replacing it (which is bad)
+			//and also remove the default case sprite (which is loaded by the vanilla code)
 
 
 			//but first, grab all the stuff that would be in : base
@@ -48,12 +55,19 @@ namespace CustomProjections
 			string elementName = "GuidanceSlugcat";
 			
 				
-			//If it matches the new enum, load the new sprite
+			//If it matches the new enum...
 			if(Self.direction.data.symbol == EnumExt_CustomProjections.Grapple)
             {
+				//remove the default
+				Self.symbol = new OverseerHolograms.OverseerHologram.Symbol(Self, Self.totalSprites, elementName);
+				(Self as OverseerHolograms.OverseerHologram)?.parts.Remove(Self.symbol);
+				Self.totalSprites -= Self.symbol.totalSprites;
+
+				//and load the new sprite
 				elementName = "Kill_Tubeworm";
 				Self.symbol = new OverseerHolograms.OverseerHologram.Symbol(Self, Self.totalSprites, elementName);
 				(Self as OverseerHolograms.OverseerHologram)?.AddPart(Self.symbol);
+				
 			}
 					
 			
